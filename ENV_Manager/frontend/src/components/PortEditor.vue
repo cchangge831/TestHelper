@@ -5,6 +5,7 @@
     width="480px"
     @close="handleClose"
     destroy-on-close
+    class="port-dialog"
   >
     <el-form label-width="130px" label-suffix="：" v-if="ports">
       <!-- Tomcat 端口 -->
@@ -85,11 +86,15 @@ async function handleSave() {
       connector_port: String(ports.value.connector_port),
     })
 
-    // 保存或删除调试端口
-    if (debugPort.value) {
-      await upsertDebugPort(props.version, Number(debugPort.value))
-    } else {
-      await deleteDebugPort(props.version)
+    // 保存或删除调试端口（server.xml 已写入，这里失败不影响端口保存结果）
+    try {
+      if (debugPort.value) {
+        await upsertDebugPort(props.version, Number(debugPort.value))
+      } else {
+        await deleteDebugPort(props.version)
+      }
+    } catch {
+      ElMessage.warning('端口已保存，但调试端口更新失败，请重试')
     }
 
     ElMessage.success('端口配置已更新')
@@ -112,3 +117,10 @@ function handleClose() {
   emit('close')
 }
 </script>
+
+<style>
+.port-dialog .el-dialog__footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 20px;
+}
+</style>

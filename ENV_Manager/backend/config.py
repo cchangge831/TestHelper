@@ -1,18 +1,23 @@
 """
 配置文件 — 集中管理路径常量与各模块共用工具函数。
-修改 ENVIRONMENT_ROOT 可指向不同的环境根目录。
+系统参数优先从 config.properties 读取，无配置时使用硬编码默认值。
 """
 import os
 
-# ============================================================
-# 环境根目录（修改此路径可切换管理范围）
-# ============================================================
-ENVIRONMENT_ROOT = r"C:\Users\cchan\Desktop\Environment"
+from modules.config_properties import read_config
 
 # ============================================================
-# API 服务配置
+# 系统配置文件路径
 # ============================================================
-API_PORT = 6688
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "config.properties")
+
+# ============================================================
+# 加载配置（以 config.properties 为准，缺项使用默认值）
+# ============================================================
+_config = read_config(CONFIG_FILE)
+
+ENVIRONMENT_ROOT = _config.get("environment.root") or r"C:\Users\cchan\Desktop\Environment"
+API_PORT = int(_config.get("api.port", 6688))
 
 # ============================================================
 # 路径查找工具函数

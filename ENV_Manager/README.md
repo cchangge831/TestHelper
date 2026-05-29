@@ -65,12 +65,15 @@ Environment/
 
 ```
 ENV_Manager/
+├── config/
+│   └── config.properties         # 系统运行参数（key=value 格式）
 ├── backend/
 │   ├── app.py                    # Flask 入口，注册蓝图与路由
-│   ├── config.py                 # 配置文件（路径常量、端口等）
+│   ├── config.py                 # 配置文件（从 config.properties 加载）
 │   ├── requirements.txt          # Python 依赖
 │   └── modules/
 │       ├── __init__.py
+│       ├── config_properties.py  # .properties 文件读写 + 转义处理
 │       ├── env_discovery.py      # 扫描 Environment 目录发现系统
 │       ├── tomcat_ctl.py         # 启停控制（startup.bat / shutdown.bat + taskkill）
 │       ├── props_editor.py       # properties 文件 CRUD（自动备份）
@@ -177,10 +180,12 @@ cd backend && python app.py --serve-frontend
 
 ## 配置
 
-编辑 `backend/config.py`：
+编辑 `backend/config.properties`（推荐）或直接修改 `backend/config.py`：
 
-- `ENVIRONMENT_ROOT` — 环境根目录路径
-- `API_PORT` — 服务端口号（默认 6688）
+- `environment.root` — 环境根目录路径（路径中的 `\` 需写为 `\\`）
+- `api.port` — 服务端口号（默认 6688）
+
+运行时 `config.py` 优先读取 `config.properties`，缺项使用硬编码默认值。
 
 ## 注意事项
 

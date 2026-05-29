@@ -1,0 +1,24 @@
+================================================================================
+changeLog - ENV_Manager 修改日志
+格式：[日期] [类型] 描述
+类型：ADD（新增）| MOD（修改）| FIX（修复）| RM（删除）| DOC（文档）
+================================================================================
+[2026-05-27] [ADD] CLAUDE.md — 添加项目规范文件，包含架构规则、编码规范、API模式等
+[2026-05-27] [ADD] changeLog.log — 新增修改日志文件，记录所有代码变更
+[2026-05-27] [MOD] CLAUDE.md — 新增"变更记录规范"章节：每次代码修改后必须写 changeLog.log 并更新 README.md
+[2026-05-27] [FIX] PropsEditor.vue — 修复删除键值对无效的问题：新增行无原始 key 时不调 API，直接移除
+[2026-05-27] [FIX] PropsEditor.vue — 保存时校验 key 不能为空，空 key 弹提示阻止保存
+[2026-05-27] [FIX] PropsEditor.vue — 修复非 need_start 错误导致 UI 状态混乱：每次 loadProps 前重置 fileNotFound，所有异常清空 propsList
+[2026-05-27] [FIX] PropsEditor.vue — 修复编辑已有行后 _originalKey 未更新，导致删除时用旧 key 调 API
+[2026-05-27] [FIX] PortEditor.vue — 修复 server.xml 端口保存成功后调试端口失败时无提示的问题，增加 try/catch 兜底
+[2026-05-27] [FIX] tomcat_ctl.py — 修复端口为 None 时空等 12 秒，改为提前返回
+[2026-05-27] [FIX] tomcat_ctl.py — 修复 Popen/Run shell=True + list 的潜在解析问题，统一改为字符串传参
+[2026-05-27] [ADD] config.properties — 新增系统配置文件（key=value 格式），存储运行时参数
+[2026-05-27] [ADD] config_properties.py — 新增 .properties 文件读写模块，处理反斜杠、等号、注释符号等转义
+[2026-05-27] [MOD] config.py — 改为从 config.properties 读取 ENVIRONMENT_ROOT 和 API_PORT，缺项兜底默认值
+[2026-05-27] [MOD] config.properties — 从 backend/ 移动到 config/ 目录，config.py 路径同步更新
+[2026-05-27] [FIX] PropsEditor.vue — 修复 4 个问题：① 新增行自动聚焦 key 输入框；② 确定时校验 key 不能为空；③ 删除改用 indexOf 定位，修复删错行；④ 增删改全部本地操作，仅"保存所有修改"写文件+备份
+[2026-05-27] [MOD] App.vue — UI 全面美化：渐变蓝色顶栏、统计卡片（总数/运行中/已停止）、表格包裹在卡片内、运行状态呼吸圆点标签、过渡动画
+[2026-05-27] [FIX] App.vue — 环境列表不会动态更新：增加 visibilitychange 监听，切换到标签页时自动刷新；refreshEnvs 增加 catch 块防止静默失败
+[2026-05-27] [MOD] PropsEditor.vue / PortEditor.vue — 对话框 footer 添加分隔线、body padding 统一
+[2026-05-27] [MOD] App.vue — 交互调整：Version 点击复制环境信息（原端口行为），访问端口点击跳转环境（原"访问"按钮行为），移除"访问"按钮

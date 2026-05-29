@@ -61,20 +61,21 @@ def start_tomcat(version: str) -> dict:
 
     try:
         # 不捕获输出 → 黑窗正常显示，等同于用户双击 startup.bat
-        subprocess.Popen([script], cwd=script_dir, shell=True)
+        subprocess.Popen(f'"{script}"', cwd=script_dir, shell=True)
+
+        if not port:
+            return {"success": True, "message": f"{version} 启动命令已执行（未配置端口）"}
 
         # 等待 Tomcat 初始化（端口开始监听）
         for _ in range(6):
             time.sleep(2)
-            if port and _port_listening(port):
+            if _port_listening(port):
                 return {"success": True,
                         "message": f"{version} 启动成功（端口 {port} 已监听）"}
 
-        if port:
-            return {"success": True,
-                    "message": f"{version} 启动命令已执行，但端口 {port} 尚未监听，请稍后检查"}
+        # 等待超时，端口仍未监听
         return {"success": True,
-                "message": f"{version} 启动命令已执行"}
+                "message": f"{version} 启动命令已执行，但端口 {port} 尚未监听，请稍后检查"}
 
     except Exception as e:
         return {"success": False, "message": f"启动异常: {str(e)}"}
@@ -94,7 +95,7 @@ def stop_tomcat(version: str) -> dict:
     if os.path.isfile(script):
         try:
             subprocess.run(
-                [script],
+                f'"{script}"',
                 cwd=os.path.dirname(script),
                 shell=True, timeout=5,
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

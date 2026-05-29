@@ -63,7 +63,7 @@
           </el-button>
           <el-popconfirm
             title="确定删除该参数？"
-            @confirm="handleDelete($index)"
+            @confirm="handleDelete(row, $index)"
           >
             <template #reference>
               <el-button size="small" link type="danger">删除</el-button>
@@ -88,10 +88,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getProps, batchSaveProps, deleteProp } from '../api/index.js'
+import { getProps, batchSaveProps } from '../api/index.js'
 
 const props = defineProps({
   visible: Boolean,
@@ -117,9 +117,9 @@ watch(() => props.visible, async (val) => {
 
 /** 加载 properties 文件内容 */
 async function loadProps() {
+  fileNotFound.value = false
   try {
     const res = await getProps(props.version, props.fileKey)
-    fileNotFound.value = false
     propsList.value = Object.entries(res.data).map(([key, value]) => ({
       key,
       value,
@@ -128,10 +128,10 @@ async function loadProps() {
       _originalValue: value,
     }))
   } catch (err) {
+    propsList.value = []
     if (err.response?.data?.error === 'need_start') {
       fileNotFound.value = true
       notFoundMessage.value = err.response.data.message || '需要启动系统来创建此文件'
-      propsList.value = []
     }
   }
 }
@@ -143,6 +143,10 @@ function startEdit(row) {
 
 /** 确认单行编辑 */
 function confirmEdit(row) {
+  if (!row.key) {
+    ElMessage.warning('Key 不能为空')
+    return
+  }
   row.editing = false
 }
 
@@ -152,34 +156,41 @@ function addRow() {
     key: '',
     value: '',
     editing: true,
-    _originalKey: '',
-    _originalValue: '',
+  })
+  nextTick(() => {
+    // 焦点跳到新增行的 key 输入框（最后一行的第一个 input）
+    const lastRow = document.querySelector(
+      '.props-dialog .el-table__body tr.el-table__row:last-child'
+    )
+    if (!lastRow) return
+    const input = lastRow.querySelector('.el-input__inner')
+    if (input) input.focus()
   })
 }
 
-/** 删除行 */
-async function handleDelete(index) {
-  const item = propsList.value[index]
-  if (item.key) {
-    try {
-      await deleteProp(props.version, props.fileKey, item._originalKey)
-      ElMessage.success('已删除')
-    } catch {
-      return
-    }
+/** 删除行（仅从本地列表移除） */
+function handleDelete(row) {
+  const index = propsList.value.indexOf(row)
+  if (index > -1) {
+    propsList.value.splice(index, 1)
   }
-  propsList.value.splice(index, 1)
 }
 
 /** 保存所有修改（全量覆盖，触发一次备份） */
 async function handleSave() {
+  // 校验：key 不能为空
+  for (const item of propsList.value) {
+    if (!item.key) {
+      ElMessage.warning('Key 不能为空，请填写或删除空行后再保存')
+      return
+    }
+  }
+
   saving.value = true
   try {
     const data = {}
     for (const item of propsList.value) {
-      if (item.key) {
-        data[item.key] = item.value
-      }
+      data[item.key] = item.value
     }
     await batchSaveProps(props.version, props.fileKey, data)
     ElMessage.success('保存成功，已备份原文件')
@@ -214,8 +225,12 @@ function handleClose() {
 }
 .props-dialog .el-dialog__body {
   overflow: hidden !important;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 16px;
+  padding-bottom: 16px;
   flex: 1;
+}
+.props-dialog .el-dialog__footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 20px;
 }
 </style>
